@@ -1,0 +1,6 @@
+[
+  { "path": "audio/op_report_long.wav", "label": "Single-Shot-Antibiose mit Cefuroxim eintausendfuenfhundert Milligramm neue Zeile Prolene sechs null fortlaufend" },
+  { "path": "audio/lagerung_long.wav", "label": "Kontrollierte Rueckenlagerung des Patienten nach Desinfektion des OP-Gebietes mit Octenisept" },
+  { "path": "audio/short_reject.wav", "label": "Zu kurze Aufnahme fuer Annotation" },
+  { "path": "audio/missing_audio.wav", "label": "Dieser Eintrag hat keine Audiodatei" }
+]

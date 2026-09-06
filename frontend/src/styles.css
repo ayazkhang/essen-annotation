@@ -1,0 +1,112 @@
+:root {
+  --bg: #f3f0ea;
+  --bg-deep: #e7e1d6;
+  --surface: #fffcf7;
+  --ink: #1c2420;
+  --muted: #5c6a62;
+  --line: #c9c2b4;
+  --accent: #0f6b5c;
+  --accent-soft: #d5ebe6;
+  --warn: #9a5b14;
+  --danger: #8b2e2e;
+  --reject: #6b7280;
+  --span-number: #dbeafe;
+  --span-format: #fef3c7;
+  --span-spell: #ede9fe;
+  --span-entity: #fce7f3;
+  --span-medical: #d1fae5;
+  --span-measure: #ffedd5;
+  --font: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, #d9ebe6 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, #efe6d4 0%, transparent 50%),
+    var(--bg);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--bg-deep);
+}
+
+.badge.PENDING { background: #dbeafe; }
+.badge.IN_PROGRESS { background: #fef3c7; }
+.badge.COMPLETED { background: #d1fae5; }
+.badge.AUTO_REJECTED { background: #e5e7eb; color: var(--reject); }
+.badge.UNPAIRED { background: #fee2e2; }
+
+.mono {
+  font-family: var(--mono);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.err {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: var(--muted);
+}

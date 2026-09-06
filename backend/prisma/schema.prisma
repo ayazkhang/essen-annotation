@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ItemStatus {
+  UNPAIRED
+  AUTO_REJECTED
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum SpanType {
+  NUMBER
+  FORMATTING_COMMAND
+  SPELLED_OUT
+  NAMED_ENTITY
+  MEDICAL_TERM
+  MEASUREMENT
+}
+
+model AnnotationItem {
+  id        String     @id @default(cuid())
+  filename  String     @unique
+  /// Relative path under UPLOAD_DIR, null when transcript exists without audio
+  storagePath String?
+  mimeType  String?
+  fileSize  Int?
+
+  durationSeconds Float?
+  sampleRate      Int?
+  channels        Int?
+  bitDepth        Int?
+  /// Native tags (RIFF INFO / bext / ID3) extracted at ingest
+  headerMetadata  Json?
+
+  status    ItemStatus @default(UNPAIRED)
+  annotator String?
+
+  /// Immutable AI first-pass transcript
+  originalTranscript  String?
+  /// Human-corrected transcript (starts as a copy of original)
+  correctedTranscript String?
+
+  /// Suggested speech rate (tokens / duration * 60)
+  speechRateWpmSuggested Float?
+  speechRateWpmOverride  Float?
+
+  /// Suggested proximity proxy (0=far .. 1=close). See DESIGN.md.
+  distanceEstimateSuggested Float?
+  distanceEstimateOverride  Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  spans AnnotationSpan[]
+
+  @@index([status])
+  @@index([durationSeconds])
+}
+
+model AnnotationSpan {
+  id          String   @id @default(cuid())
+  itemId      String
+  item        AnnotationItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  type        SpanType
+  /// Inclusive start / exclusive end character offsets into correctedTranscript
+  startOffset Int
+  endOffset   Int
+  /// Type-specific attributes (validated in application layer)
+  attributes  Json
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([itemId])
+}
