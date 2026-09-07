@@ -9,6 +9,17 @@ Two tables:
 
 Statuses: `UNPAIRED` → `PENDING` | `AUTO_REJECTED` (duration ≤ 15s) → `IN_PROGRESS` → `COMPLETED`. Duration routing never trusts the client.
 
+## Backend layout
+
+Mirrors the frontend’s separation of concerns:
+
+- `config/env.ts` — Zod-validated environment (`DATABASE_URL`, `PORT`, `UPLOAD_DIR`, size limit)
+- `services/` — ingest, items/spans, pairing orchestration
+- `routes/` — thin HTTP adapters (`asyncHandler` + `HttpError`)
+- `middleware/` — multer upload + shared error handler
+- `lib/` — pure domain helpers (pairing, units, spans, audio analysis, export, status)
+- `__tests__/` — routing, pairing, units, spans, audio helpers
+
 ## Why this shape
 
 Filename is the natural join key from the AI JSON (`path` / `label`). Keeping original and corrected on the same row avoids a join for the hot path and makes WER-style comparisons trivial. Spans reference corrected offsets so token CRUD (edit/add/delete) stays a plain text edit rather than a parallel token graph—faster for annotators, simpler to export.
@@ -40,17 +51,18 @@ The brief lists CRUD among “six types.” **CRUD is transcript editing** (corr
 ## Tradeoffs / cuts
 
 - **Disk storage** instead of MinIO — fine for localhost / one annotator.
-- **Synthetic demo WAVs** (tonal PCM) instead of real Common Voice clips — keeps the repo small and offline; labels still exercise pairing and spans.
+- **Demo audio**: tonal PCM under `demo/audio/` for offline seed; spoken German TTS samples under `demo/realtime/` for player/annotation practice.
 - **No auth / multi-annotator** — out of scope.
 - **Proportional word timing** — see above.
-- Frontend build uses Vite proxy; production static hosting not wired (out of scope).
+- Span **attribute** edit in UI; changing offsets is recreate-or-API (kept simple).
 
 ## Deliberate deviations
 
-- Node engines field requires ≥22; local setup documented via fnm/nvm.
-- `APPLICATION/octet-stream` accepted for uploads when the **extension** is valid (browsers lie about MIME).
+- Node engines field requires ≥22; Docker images use Node 22.
+- Extension-based audio validation (browsers often send `application/octet-stream`).
 - Re-uploading a transcript does **not** overwrite an existing immutable original; corrected is only seeded when missing.
+- Separate `backend` and `frontend` compose services (each with its own `*/docker/`), not a single app container.
 
 ## Next
 
-Real medical audio seed; optional MinIO; word-level timings from the STT service; lightweight WER display against original vs corrected; span editing of offsets in the UI (today: recreate or edit attributes).
+Optional MinIO; real word timings from STT; WER display; span offset editing in the UI; route-level integration tests.

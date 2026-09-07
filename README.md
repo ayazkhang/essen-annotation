@@ -2,42 +2,60 @@
 
 Annotator-facing web app for correcting German clinical speech transcripts and marking structured spans (numbers, formatting commands, medical terms, measurements, etc.).
 
-**Stack:** Node.js **22**, TypeScript, Express, Prisma, PostgreSQL, Vue 3 (Composition API / `<script setup>`), Yarn workspaces, Docker Compose for Postgres.
+**Stack:** Node.js **22**, TypeScript, Express, Prisma, PostgreSQL, Vue 3 (Composition API / `<script setup>`), Yarn, Docker Compose.
 
 ## Prerequisites
 
-- Node.js **22** (see `.nvmrc`)
-- Yarn classic (`corepack enable` then use the repo’s Yarn)
 - Docker + Docker Compose
+- Node.js **22** only if you run outside Docker (see `.nvmrc`)
 
-## Quick start
+## Quick start (Docker — recommended)
+
+Dockerfiles live under `backend/docker/` and `frontend/docker/`. Dependencies install **inside** those containers (not a host `node_modules/`).
 
 ```bash
-# 1. Database
-docker compose up -d
-
-# 2. Install, migrate, generate demo WAVs, seed
-yarn install
-yarn workspace backend generate:demo
-yarn workspace backend prisma:migrate
-yarn workspace backend seed
-
-# 3. Run API + UI
-yarn dev
+docker compose up --build
 ```
+
+That will:
+
+1. Start Postgres  
+2. Install deps in the backend and frontend containers  
+3. Run Prisma migrations + seed demo data (backend)  
+4. Start API (`backend`) + Vue UI (`frontend`)  
 
 - UI: http://localhost:5173  
 - API: http://localhost:3001/api/health  
 
 Demo items appear in the queue: two long clips ready to annotate (including the Cefuroxim worked example with spans), and one short clip auto-rejected (≤15s).
 
+Stop with `Ctrl+C`, or in detached mode:
+
+```bash
+docker compose up --build -d
+docker compose down
+```
+
+Set `SEED_ON_START=0` on the `backend` service in `docker-compose.yml` if you do not want the DB re-seeded on every container start.
+
+## Local development (optional, without Docker app)
+
+```bash
+docker compose up -d postgres
+cd backend && yarn install && yarn generate:demo && yarn prisma:migrate && yarn seed && yarn dev
+# in another terminal:
+cd frontend && yarn install && yarn dev
+```
+
+Use `backend/.env` with `DATABASE_URL` pointing at `localhost:5432`.
+
 ## Useful commands
 
 | Command | Purpose |
 |---------|---------|
-| `yarn test` | Backend unit tests (routing, pairing, units, spans) |
-| `yarn workspace backend seed` | Re-seed demo data |
-| `yarn workspace backend generate:demo` | Regenerate `demo/audio/*.wav` |
+| `docker compose up --build` | Install deps, migrate, seed, run backend + frontend |
+| `docker compose exec backend yarn test` | Backend unit tests |
+| `docker compose exec backend yarn seed` | Re-seed demo data |
 | Export | Header link **Export JSONL**, or `GET /api/items/export.jsonl` |
 
 ## Upload formats
@@ -66,7 +84,9 @@ Pairing is by **basename**. Unmatched audio/transcripts are listed on **Ingest**
 ## Tests
 
 ```bash
-yarn test
+docker compose exec backend yarn test
+# or locally:
+cd backend && yarn install && yarn test
 ```
 
 Covers the 15-second routing rule, transcript/audio pairing validation, measurement unit normalization, and span attribute/offset checks.

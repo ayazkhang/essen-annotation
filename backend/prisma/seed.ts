@@ -83,7 +83,7 @@ async function copyDemo(file: string): Promise<string> {
 
 async function main() {
   if (!fs.existsSync(demoDir)) {
-    throw new Error(`Demo audio missing at ${demoDir}. Run: yarn workspace backend generate:demo`);
+    throw new Error(`Demo audio missing at ${demoDir}. Run: yarn generate:demo (from backend/)`);
   }
 
   await prisma.annotationSpan.deleteMany();

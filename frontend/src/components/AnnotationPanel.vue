@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
-import type { AnnotationSpan, SpanType } from '../api';
+import type { AnnotationSpan } from '../api';
+import { useAnnotationPanel } from './useAnnotationPanel';
 
 const props = defineProps<{
   spans: AnnotationSpan[];
@@ -9,118 +9,44 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  create: [payload: { type: SpanType; startOffset: number; endOffset: number; attributes: Record<string, unknown> }];
-  update: [payload: { id: string; type: SpanType; startOffset: number; endOffset: number; attributes: Record<string, unknown> }];
+  create: [
+    payload: {
+      type: import('../api').SpanType;
+      startOffset: number;
+      endOffset: number;
+      attributes: Record<string, unknown>;
+    },
+  ];
+  update: [
+    payload: {
+      id: string;
+      type: import('../api').SpanType;
+      startOffset: number;
+      endOffset: number;
+      attributes: Record<string, unknown>;
+    },
+  ];
   remove: [id: string];
 }>();
 
-const type = ref<SpanType>('MEDICAL_TERM');
-const editingId = ref<string | null>(null);
-
-const form = reactive<Record<string, unknown>>({
-  rendering: 'words',
-  normalizedValue: '',
-  command: 'newline',
-  isCommand: true,
-  resolvedWord: '',
-  entityType: 'human_name',
-  category: 'drug',
-  note: '',
-  value: 0,
-  unit: 'mg',
-});
-
-watch(
-  () => props.selection,
-  () => {
-    editingId.value = null;
-  },
-);
-
-const types: SpanType[] = [
-  'NUMBER',
-  'FORMATTING_COMMAND',
-  'SPELLED_OUT',
-  'NAMED_ENTITY',
-  'MEDICAL_TERM',
-  'MEASUREMENT',
-];
-
-function attributesForType(t: SpanType): Record<string, unknown> {
-  switch (t) {
-    case 'NUMBER':
-      return {
-        rendering: form.rendering,
-        normalizedValue:
-          typeof form.normalizedValue === 'string' && /^-?\d+(\.\d+)?$/.test(form.normalizedValue)
-            ? Number(form.normalizedValue)
-            : form.normalizedValue,
-      };
-    case 'FORMATTING_COMMAND':
-      return { command: form.command, isCommand: Boolean(form.isCommand) };
-    case 'SPELLED_OUT':
-      return { resolvedWord: form.resolvedWord };
-    case 'NAMED_ENTITY':
-      return { entityType: form.entityType };
-    case 'MEDICAL_TERM':
-      return { category: form.category, note: form.note || '' };
-    case 'MEASUREMENT':
-      return { value: Number(form.value), unit: form.unit };
-  }
-}
-
-function loadSpan(span: AnnotationSpan) {
-  editingId.value = span.id;
-  type.value = span.type;
-  const a = span.attributes;
-  Object.assign(form, {
-    rendering: a.rendering ?? 'words',
-    normalizedValue: a.normalizedValue ?? '',
-    command: a.command ?? 'newline',
-    isCommand: a.isCommand ?? true,
-    resolvedWord: a.resolvedWord ?? '',
-    entityType: a.entityType ?? 'human_name',
-    category: a.category ?? 'drug',
-    note: a.note ?? '',
-    value: a.value ?? 0,
-    unit: a.unit ?? 'mg',
-  });
-}
-
-function submit() {
-  if (!props.selection && !editingId.value) return;
-  const attrs = attributesForType(type.value);
-  if (editingId.value) {
-    const existing = props.spans.find((s) => s.id === editingId.value);
-    if (!existing) return;
-    emit('update', {
-      id: editingId.value,
-      type: type.value,
-      startOffset: existing.startOffset,
-      endOffset: existing.endOffset,
-      attributes: attrs,
-    });
-  } else if (props.selection) {
-    emit('create', {
-      type: type.value,
-      startOffset: props.selection.start,
-      endOffset: props.selection.end,
-      attributes: attrs,
-    });
-  }
-}
-
-const selectionLabel = computed(() => {
-  if (editingId.value) {
-    const s = props.spans.find((x) => x.id === editingId.value);
-    return s ? props.transcript.slice(s.startOffset, s.endOffset) : '';
-  }
-  return props.selection?.text ?? '';
-});
+const {
+  type,
+  editingId,
+  form,
+  types,
+  formattingCommands,
+  medicalCategories,
+  measurementUnits,
+  selectionLabel,
+  loadSpan,
+  submit,
+  removeSpan,
+  spanText,
+} = useAnnotationPanel(props, emit);
 </script>
 
 <template>
-  <div class="panel">
+  <div class="annotation-panel panel">
     <h2>Annotations</h2>
     <p class="muted small">
       Select text in the corrected transcript, choose a type, fill attributes, save.
@@ -155,13 +81,7 @@ const selectionLabel = computed(() => {
       <label>
         Command
         <select v-model="form.command">
-          <option
-            v-for="c in ['newline','paragraph','period','comma','colon','dash','bracket_open','bracket_close']"
-            :key="c"
-            :value="c"
-          >
-            {{ c }}
-          </option>
+          <option v-for="c in formattingCommands" :key="c" :value="c">{{ c }}</option>
         </select>
       </label>
       <label class="check">
@@ -193,9 +113,7 @@ const selectionLabel = computed(() => {
       <label>
         Category
         <select v-model="form.category">
-          <option v-for="c in ['anatomy','procedure','diagnosis','drug','device']" :key="c" :value="c">
-            {{ c }}
-          </option>
+          <option v-for="c in medicalCategories" :key="c" :value="c">{{ c }}</option>
         </select>
       </label>
       <label>
@@ -212,23 +130,12 @@ const selectionLabel = computed(() => {
       <label>
         Unit
         <select v-model="form.unit">
-          <option
-            v-for="u in ['g','mg','ug','kg','ml','l','mmHg','IE','mm','cm','Ch']"
-            :key="u"
-            :value="u"
-          >
-            {{ u }}
-          </option>
+          <option v-for="u in measurementUnits" :key="u" :value="u">{{ u }}</option>
         </select>
       </label>
     </div>
 
-    <button
-      type="button"
-      class="primary"
-      :disabled="!selectionLabel"
-      @click="submit"
-    >
+    <button type="button" class="primary" :disabled="!selectionLabel" @click="submit">
       {{ editingId ? 'Update span' : 'Create span' }}
     </button>
 
@@ -236,86 +143,14 @@ const selectionLabel = computed(() => {
       <li v-for="span in spans" :key="span.id">
         <div>
           <strong>{{ span.type }}</strong>
-          <span class="mono"> {{ transcript.slice(span.startOffset, span.endOffset) }}</span>
+          <span class="mono"> {{ spanText(span) }}</span>
           <div class="attrs muted">{{ JSON.stringify(span.attributes) }}</div>
         </div>
         <div class="row-actions">
           <button type="button" @click="loadSpan(span)">Edit</button>
-          <button type="button" @click="$emit('remove', span.id)">Delete</button>
+          <button type="button" @click="removeSpan(span.id)">Delete</button>
         </div>
       </li>
     </ul>
   </div>
 </template>
-
-<style scoped>
-h2 {
-  margin: 0 0 0.35rem;
-  font-size: 1.1rem;
-}
-
-.small {
-  font-size: 0.85rem;
-}
-
-.sel {
-  padding: 0.4rem 0.55rem;
-  background: var(--accent-soft);
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
-}
-
-input,
-select {
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-}
-
-.fields {
-  margin-bottom: 0.5rem;
-}
-
-.check {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 1rem 0 0;
-}
-
-.list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.55rem 0;
-  border-top: 1px solid var(--line);
-  font-size: 0.88rem;
-}
-
-.attrs {
-  font-size: 0.75rem;
-  word-break: break-all;
-}
-
-.row-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-</style>

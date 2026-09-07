@@ -1,47 +1,22 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
-import { api, formatDuration, type AnnotationItem, type ItemStatus } from '../api';
+import './queue-view.css';
+import { useQueueView } from './useQueueView';
 
-const items = ref<AnnotationItem[]>([]);
-const loading = ref(false);
-const error = ref('');
-const statusFilter = ref<string>('');
-const sort = ref('duration');
-const order = ref<'asc' | 'desc'>('desc');
-
-async function load() {
-  loading.value = true;
-  error.value = '';
-  try {
-    const res = await api.listItems({
-      status: statusFilter.value || undefined,
-      sort: sort.value,
-      order: order.value,
-    });
-    items.value = res.items;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load queue';
-  } finally {
-    loading.value = false;
-  }
-}
-
-onMounted(load);
-watch([statusFilter, sort, order], load);
-
-const statuses: Array<ItemStatus | ''> = [
-  '',
-  'PENDING',
-  'IN_PROGRESS',
-  'COMPLETED',
-  'AUTO_REJECTED',
-  'UNPAIRED',
-];
+const {
+  items,
+  loading,
+  error,
+  statusFilter,
+  sort,
+  order,
+  statuses,
+  load,
+  formatDuration,
+} = useQueueView();
 </script>
 
 <template>
-  <section>
+  <section class="queue-view">
     <div class="head">
       <div>
         <h1>Work queue</h1>
@@ -119,77 +94,3 @@ const statuses: Array<ItemStatus | ''> = [
     </div>
   </section>
 </template>
-
-<style scoped>
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.5rem;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1rem;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-select {
-  min-width: 10rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.table-wrap {
-  overflow-x: auto;
-  padding: 0;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 0.65rem 0.85rem;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.92rem;
-}
-
-th {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-
-.btn {
-  display: inline-block;
-  padding: 0.45rem 0.8rem;
-  border-radius: 6px;
-  background: var(--accent);
-  color: #fff;
-  text-decoration: none;
-  font-weight: 500;
-}
-</style>

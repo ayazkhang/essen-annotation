@@ -1,0 +1,83 @@
+.ingest-view {
+  display: grid;
+  gap: 1rem;
+}
+
+.ingest-view h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.ingest-view h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.ingest-view textarea,
+.ingest-view input[type='text'],
+.ingest-view input:not([type='file']):not([type='radio']) {
+  width: 100%;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.ingest-view label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.ingest-view .ok {
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.ingest-view .pairing {
+  grid-column: 1 / -1;
+}
+
+.ingest-view .pair-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ingest-view .cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.ingest-view ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingest-view li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.ingest-view .linkish {
+  border: none;
+  background: transparent;
+  color: var(--danger);
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+@media (min-width: 900px) {
+  .ingest-view {
+    grid-template-columns: 1fr 1fr;
+  }
+}

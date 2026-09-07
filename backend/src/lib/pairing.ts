@@ -121,10 +121,7 @@ export interface PairingResult {
   issues: PairingIssue[];
 }
 
-/**
- * Match transcript rows to audio filenames by basename.
- * Does not silently drop either side.
- */
+
 export function pairTranscriptsToAudio(
   audioFilenames: string[],
   transcriptRows: TranscriptRow[],

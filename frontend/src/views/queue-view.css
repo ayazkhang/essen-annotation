@@ -1,0 +1,71 @@
+.queue-view .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.queue-view h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.queue-view .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.queue-view label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.queue-view select {
+  min-width: 10rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.queue-view .table-wrap {
+  overflow-x: auto;
+  padding: 0;
+}
+
+.queue-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.queue-view th,
+.queue-view td {
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.queue-view th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.queue-view .btn {
+  display: inline-block;
+  padding: 0.45rem 0.8rem;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}

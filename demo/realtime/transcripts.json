@@ -1,0 +1,22 @@
+[
+  {
+    "path": "audio/op_cefuroxim.wav",
+    "label": "Single Shot Antibiose mit Cefuroxim eintausendfuenfhundert Milligramm neue Zeile Prolene sechs null fortlaufend Anschliessend Hautnaht und steriler Verband Kontrollierte Blutstillung keine Komplikationen Patient haemodynamisch stabil"
+  },
+  {
+    "path": "audio/lagerung_prep.wav",
+    "label": "Kontrollierte Rueckenlagerung des Patienten nach Desinfektion des OP Gebietes mit Octenisept steriles Abwaschen und Abdecken Timeout durchgefuehrt Team Time Out abgeschlossen Schnittfuehrung markiert bereit zur Inzision"
+  },
+  {
+    "path": "audio/spelled_cefuroxim.wav",
+    "label": "C wie Caesar E F U R O X I M zweihundert Milligramm intravenoes neue Zeile Weiter mit der Praeparation Wundraender adaptiert Hautverschluss mit Klammern"
+  },
+  {
+    "path": "audio/short_note.wav",
+    "label": "Zu kurze Aufnahme"
+  },
+  {
+    "path": "audio/missing_clip.wav",
+    "label": "Dieser Transcript-Eintrag hat kein Audio und soll unmatched bleiben"
+  }
+]

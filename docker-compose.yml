@@ -16,5 +16,54 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/docker/Dockerfile
+    restart: unless-stopped
+    working_dir: /app/backend
+    environment:
+      DATABASE_URL: postgresql://essen:essen@postgres:5432/essen_annotation?schema=public
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      PORT: "3001"
+      UPLOAD_DIR: /app/backend/uploads
+      MAX_UPLOAD_BYTES: "52428800"
+      SEED_ON_START: "1"
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      # Keep root empty so Node never resolves into a broken workspace hoist.
+      - backend_root_node_modules_empty:/app/node_modules
+      - backend_node_modules:/app/backend/node_modules
+      - backend_uploads:/app/backend/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/docker/Dockerfile
+    restart: unless-stopped
+    working_dir: /app/frontend
+    environment:
+      VITE_HOST: "0.0.0.0"
+      VITE_API_PROXY: http://backend:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - frontend_root_node_modules_empty:/app/node_modules
+      - frontend_node_modules:/app/frontend/node_modules
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
+  backend_root_node_modules_empty:
+  backend_node_modules:
+  backend_uploads:
+  frontend_root_node_modules_empty:
+  frontend_node_modules:

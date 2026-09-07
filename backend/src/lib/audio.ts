@@ -7,7 +7,6 @@ export interface AudioAnalysis {
   channels: number | null;
   bitDepth: number | null;
   headerMetadata: Record<string, unknown>;
-  /** Suggested proximity proxy in [0, 1]. Higher ≈ closer / louder relative to noise floor. */
   distanceEstimateSuggested: number | null;
   speechRateWpmSuggested: number | null;
 }
@@ -19,9 +18,6 @@ function tokenize(text: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * Estimate speech rate in words per minute from transcript token count and duration.
- */
 export function estimateSpeechRateWpm(transcript: string | null | undefined, durationSeconds: number): number | null {
   if (!transcript || durationSeconds <= 0) return null;
   const tokens = tokenize(transcript).length;
@@ -29,18 +25,7 @@ export function estimateSpeechRateWpm(transcript: string | null | undefined, dur
   return (tokens / durationSeconds) * 60;
 }
 
-/**
- * Proximity proxy from PCM RMS vs estimated noise floor.
- *
- * Method (documented for annotators):
- * 1. Decode a mono mix of the first ~30s of PCM (WAV only for sample-accurate RMS;
- *    for compressed formats we fall back to a peak-level heuristic from file size /
- *    bitrate when raw samples are unavailable — see analyzeAudioFile).
- * 2. Compute RMS of the full window and of the quietest 10% of short frames (noise floor).
- * 3. SNR-like ratio = RMS / max(noiseFloor, epsilon). Map log10(ratio) into [0, 1]
- *    with soft clamps. This is an estimate of relative loudness / proximity, not a
- *    calibrated distance in metres.
- */
+
 export function estimateDistanceFromPcm(
   samples: Float32Array,
   frameSize = 1024,
