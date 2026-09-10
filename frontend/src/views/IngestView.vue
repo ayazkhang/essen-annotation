@@ -5,9 +5,11 @@ import { useIngestView } from './useIngestView';
 const {
   audioMsg,
   audioErr,
+  audioIssues,
   transcriptJson,
   transcriptMsg,
   transcriptErr,
+  transcriptIssues,
   pastePath,
   pasteLabel,
   pairing,
@@ -20,6 +22,7 @@ const {
   submitSingle,
   doPair,
   dropSide,
+  previewLabel,
 } = useIngestView();
 </script>
 
@@ -30,7 +33,10 @@ const {
       <p class="muted">.wav, .mp3, .m4a — max 50&nbsp;MB each. Duration is measured server-side.</p>
       <input type="file" accept=".wav,.mp3,.m4a,audio/*" multiple @change="onAudioChange" />
       <p v-if="audioMsg" class="ok">{{ audioMsg }}</p>
-      <p v-if="audioErr" class="err">{{ audioErr }}</p>
+      <ul v-if="audioIssues.length" class="issue-list">
+        <li v-for="(issue, i) in audioIssues" :key="i" class="err">{{ issue }}</li>
+      </ul>
+      <p v-else-if="audioErr" class="err">{{ audioErr }}</p>
     </div>
 
     <div class="panel">
@@ -40,7 +46,10 @@ const {
       <textarea v-model="transcriptJson" rows="8" class="mono" />
       <button type="button" class="primary" @click="submitJsonPaste">Upload JSON</button>
       <p v-if="transcriptMsg" class="ok">{{ transcriptMsg }}</p>
-      <p v-if="transcriptErr" class="err">{{ transcriptErr }}</p>
+      <ul v-if="transcriptIssues.length" class="issue-list">
+        <li v-for="(issue, i) in transcriptIssues" :key="i" class="err">{{ issue }}</li>
+      </ul>
+      <p v-else-if="transcriptErr" class="err">{{ transcriptErr }}</p>
     </div>
 
     <div class="panel">
@@ -66,6 +75,7 @@ const {
       <div class="cols">
         <div>
           <h3>Unmatched audio ({{ pairing?.unmatchedAudio.length ?? 0 }})</h3>
+          <p v-if="!(pairing?.unmatchedAudio.length)" class="muted empty">None — all audio is paired or absent.</p>
           <ul>
             <li v-for="a in pairing?.unmatchedAudio ?? []" :key="a.id">
               <label>
@@ -78,25 +88,33 @@ const {
         </div>
         <div>
           <h3>Unmatched transcripts ({{ pairing?.unmatchedTranscripts.length ?? 0 }})</h3>
+          <p v-if="!(pairing?.unmatchedTranscripts.length)" class="muted empty">None — all transcripts are paired or absent.</p>
           <ul>
             <li v-for="t in pairing?.unmatchedTranscripts ?? []" :key="t.id">
               <label>
                 <input v-model="selectedTranscript" type="radio" :value="t.id" />
                 <span class="mono">{{ t.filename }}</span>
               </label>
+              <p class="preview muted">{{ previewLabel(t.label) }}</p>
               <button type="button" class="linkish" @click="dropSide(t.id, 'transcript')">Remove</button>
             </li>
           </ul>
         </div>
         <div>
           <h3>Paired ({{ pairing?.paired.length ?? 0 }})</h3>
+          <p v-if="!(pairing?.paired.length)" class="muted empty">No paired items yet.</p>
           <ul>
             <li v-for="p in pairing?.paired ?? []" :key="p.id">
               <span class="mono">{{ p.filename }}</span>
               <span class="badge" :class="p.status">{{ p.status }}</span>
-              <button type="button" class="linkish" @click="dropSide(p.id, 'transcript')">
-                Unpair transcript
-              </button>
+              <div class="pair-actions">
+                <button type="button" class="linkish" @click="dropSide(p.id, 'transcript')">
+                  Unpair transcript
+                </button>
+                <button type="button" class="linkish" @click="dropSide(p.id, 'audio')">
+                  Unpair audio
+                </button>
+              </div>
             </li>
           </ul>
         </div>

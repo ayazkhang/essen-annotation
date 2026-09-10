@@ -38,6 +38,32 @@ docker compose down
 
 Set `SEED_ON_START=0` on the `backend` service in `docker-compose.yml` if you do not want the DB re-seeded on every container start.
 
+## Demo audio files
+
+Committed sample WAVs live under `demo/audio/` (`op_report_long.wav`, `lagerung_long.wav`, `short_reject.wav`). The backend seed copies them into uploads and loads transcripts/spans.
+
+If those files are missing, regenerate them:
+
+```bash
+# Docker
+docker compose exec backend yarn generate:demo
+
+# Local (from backend/)
+cd backend
+yarn install
+yarn generate:demo
+```
+
+That runs `backend/scripts/generate-demo-audio.ts` and writes the three WAVs into `demo/audio/`. Then re-seed:
+
+```bash
+docker compose exec backend yarn seed
+# or locally:
+cd backend && yarn seed
+```
+
+Spoken German practice clips (optional, not auto-seeded) are under `demo/realtime/` — see `demo/realtime/README.md`.
+
 ## Local development (optional, without Docker app)
 
 ```bash
@@ -54,8 +80,9 @@ Use `backend/.env` with `DATABASE_URL` pointing at `localhost:5432`.
 | Command | Purpose |
 |---------|---------|
 | `docker compose up --build` | Install deps, migrate, seed, run backend + frontend |
+| `docker compose exec backend yarn generate:demo` | Create demo WAV files in `demo/audio/` |
+| `docker compose exec backend yarn seed` | Re-seed demo data into the database |
 | `docker compose exec backend yarn test` | Backend unit tests |
-| `docker compose exec backend yarn seed` | Re-seed demo data |
 | Export | Header link **Export JSONL**, or `GET /api/items/export.jsonl` |
 
 ## Upload formats

@@ -15,7 +15,7 @@ export function useAudioPlayer(
   const current = ref(0);
   const duration = ref(0);
   const rate = ref(1);
-  const showHelp = ref(true);
+  const showHelp = ref(false);
   const tokenList = toRef(props, 'tokens');
 
   const progress = computed(() =>

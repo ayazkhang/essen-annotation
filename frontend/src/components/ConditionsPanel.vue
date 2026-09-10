@@ -17,8 +17,11 @@ const { speechOverride, distanceOverride, headerEntries, save } = useConditionsP
 </script>
 
 <template>
-  <div class="conditions-panel panel">
-    <h2>Recording conditions</h2>
+  <details class="conditions-panel panel" open>
+    <summary class="conditions-summary">
+      <span>Recording conditions</span>
+      <span class="muted small">header · WPM · distance estimate</span>
+    </summary>
 
     <dl class="meta">
       <div>
@@ -78,5 +81,5 @@ const { speechOverride, distanceOverride, headerEntries, save } = useConditionsP
 
       <button type="button" class="primary" @click="save">Save overrides</button>
     </div>
-  </div>
+  </details>
 </template>

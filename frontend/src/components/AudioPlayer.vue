@@ -75,15 +75,20 @@ defineExpose({ seekToToken, timeForToken });
       @input="onSeekBar"
     />
 
-    <details class="help" :open="showHelp">
-      <summary @click="toggleHelp">Keyboard shortcuts</summary>
-      <ul>
-        <li><kbd>Space</kbd> / <kbd>K</kbd> — play / pause</li>
-        <li><kbd>J</kbd> / <kbd>←</kbd> — back 2s · <kbd>Shift+←</kbd> — 5s</li>
-        <li><kbd>L</kbd> / <kbd>→</kbd> — forward 2s · <kbd>Shift+→</kbd> — 5s</li>
-        <li><kbd>[</kbd> / <kbd>]</kbd> — slower / faster</li>
-        <li>Click a word in the transcript to jump (proportional timing)</li>
-      </ul>
-    </details>
+    <div class="shortcut-strip" aria-label="Keyboard shortcuts">
+      <span><kbd>Space</kbd> play</span>
+      <span><kbd>J</kbd><kbd>L</kbd> ±2s</span>
+      <span><kbd>[</kbd><kbd>]</kbd> speed</span>
+      <span class="muted tip">Word click seeks (proportional)</span>
+      <button type="button" class="linkish" @click="toggleHelp">
+        {{ showHelp ? 'Hide keys' : 'All keys' }}
+      </button>
+    </div>
+    <ul v-if="showHelp" class="help-list">
+      <li><kbd>Space</kbd> / <kbd>K</kbd> — play / pause</li>
+      <li><kbd>J</kbd> / <kbd>←</kbd> — back 2s · <kbd>Shift+←</kbd> — 5s</li>
+      <li><kbd>L</kbd> / <kbd>→</kbd> — forward 2s · <kbd>Shift+→</kbd> — 5s</li>
+      <li><kbd>[</kbd> / <kbd>]</kbd> — slower / faster</li>
+    </ul>
   </div>
 </template>

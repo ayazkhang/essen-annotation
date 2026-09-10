@@ -51,10 +51,11 @@ The brief lists CRUD among “six types.” **CRUD is transcript editing** (corr
 ## Tradeoffs / cuts
 
 - **Disk storage** instead of MinIO — fine for localhost / one annotator.
-- **Demo audio**: tonal PCM under `demo/audio/` for offline seed; spoken German TTS samples under `demo/realtime/` for player/annotation practice.
+- **Demo audio**: tonal PCM under `demo/audio/` for offline seed (`yarn generate:demo`); spoken German TTS samples under `demo/realtime/` for player/annotation practice.
 - **No auth / multi-annotator** — out of scope.
 - **Proportional word timing** — see above.
 - Span **attribute** edit in UI; changing offsets is recreate-or-API (kept simple).
+- Annotate UX prioritises **corrected transcript + sticky player**; original and recording conditions are collapsed/secondary so an all-day annotator stays above the fold.
 
 ## Deliberate deviations
 

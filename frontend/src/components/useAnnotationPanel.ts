@@ -167,6 +167,17 @@ export function useAnnotationPanel(
     return props.transcript.slice(span.startOffset, span.endOffset);
   }
 
+  function formatAttrs(attrs: Record<string, unknown>): string {
+    return Object.entries(attrs)
+      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([k, v]) => `${k}: ${String(v)}`)
+      .join(' · ');
+  }
+
+  function cancelEdit() {
+    editingId.value = null;
+  }
+
   const selectionLabel = computed(() => {
     if (editingId.value) {
       const s = props.spans.find((x) => x.id === editingId.value);
@@ -185,8 +196,10 @@ export function useAnnotationPanel(
     measurementUnits: MEASUREMENT_UNITS,
     selectionLabel,
     loadSpan,
+    cancelEdit,
     submit,
     removeSpan,
     spanText,
+    formatAttrs,
   };
 }

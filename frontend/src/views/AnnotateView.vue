@@ -56,6 +56,7 @@ function onWordClick(index: number) {
       <AudioPlayer
         v-if="item.storagePath"
         ref="player"
+        class="sticky-player"
         :src="audioSrc"
         :tokens="tokens"
         :duration-hint="item.durationSeconds"

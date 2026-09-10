@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import type { AnnotationSpan } from '../api';
 import { useTranscriptEditor } from './useTranscriptEditor';
 
@@ -13,6 +14,8 @@ const emit = defineEmits<{
   wordClick: [tokenIndex: number];
   selection: [payload: { start: number; end: number; text: string }];
 }>();
+
+const showOriginal = ref(false);
 
 const {
   editMode,
@@ -42,10 +45,10 @@ defineExpose({ tokens });
       </div>
     </div>
 
-    <div class="orig">
-      <h3>Original (immutable)</h3>
-      <p class="mono locked">{{ original }}</p>
-    </div>
+    <details class="orig" :open="showOriginal" @toggle="showOriginal = ($event.target as HTMLDetailsElement).open">
+      <summary>Original (immutable)</summary>
+      <p class="mono locked">{{ original || '—' }}</p>
+    </details>
 
     <div class="corr">
       <h3>Corrected</h3>
@@ -69,8 +72,7 @@ defineExpose({ tokens });
         <p v-if="tokens.length === 0" class="muted">Empty transcript</p>
       </div>
       <p class="hint muted">
-        Click a word to seek audio. Select text, then create a span in the panel on the right.
-        Overlapping spans are allowed.
+        Click a word to seek · select text to create a span · overlaps allowed
       </p>
     </div>
   </div>

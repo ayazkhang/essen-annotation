@@ -58,6 +58,13 @@
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: start;
   }
+
+  .annotate-view .side {
+    position: sticky;
+    top: 5.5rem;
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+  }
 }
 
 /* AudioPlayer */
@@ -86,10 +93,50 @@
   width: 100%;
 }
 
+.annotate-view .player {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  box-shadow: 0 6px 16px rgba(28, 36, 32, 0.06);
+}
+
 .annotate-view .player .help {
   margin-top: 0.75rem;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.annotate-view .player .shortcut-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.9rem;
+  align-items: center;
+  margin-top: 0.65rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.annotate-view .player .shortcut-strip .tip {
+  flex: 1 1 8rem;
+}
+
+.annotate-view .player .help-list {
+  margin: 0.45rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.annotate-view .player .linkish {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.annotate-view .player.sticky-player {
+  margin-bottom: 0;
 }
 
 .annotate-view .player .help ul {
@@ -143,8 +190,17 @@
   border-bottom: 1px dashed var(--line);
 }
 
+.annotate-view .editor .orig summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
 .annotate-view .editor .locked {
-  margin: 0;
+  margin: 0.35rem 0 0;
   padding: 0.6rem 0.75rem;
   background: var(--bg-deep);
   border-radius: 6px;
@@ -231,7 +287,7 @@
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
 }
 
@@ -248,7 +304,21 @@
 .annotate-view .annotation-panel .list {
   list-style: none;
   padding: 0;
+  margin: 0.5rem 0 0;
+  max-height: min(42vh, 28rem);
+  overflow: auto;
+}
+
+.annotate-view .annotation-panel .list-title {
   margin: 1rem 0 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.annotate-view .annotation-panel .empty-spans {
+  margin: 0.5rem 0 0;
 }
 
 .annotate-view .annotation-panel .list li {
@@ -260,9 +330,40 @@
   font-size: 0.88rem;
 }
 
+.annotate-view .annotation-panel .list li.active {
+  background: var(--accent-soft);
+  margin: 0 -0.35rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  border-radius: 6px;
+}
+
+.annotate-view .annotation-panel .span-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: baseline;
+}
+
+.annotate-view .annotation-panel .span-text {
+  overflow-wrap: anywhere;
+}
+
 .annotate-view .annotation-panel .attrs {
   font-size: 0.75rem;
-  word-break: break-all;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.annotate-view .annotation-panel .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.annotate-view .annotation-panel .editing-banner {
+  margin: -0.35rem 0 0.55rem;
 }
 
 .annotate-view .annotation-panel .row-actions {
@@ -272,9 +373,28 @@
 }
 
 /* ConditionsPanel */
-.annotate-view .conditions-panel h2 {
+.annotate-view .conditions-panel h2,
+.annotate-view .conditions-panel .conditions-summary {
   margin: 0 0 0.75rem;
   font-size: 1.1rem;
+}
+
+.annotate-view .conditions-panel .conditions-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  cursor: pointer;
+  list-style: none;
+}
+
+.annotate-view .conditions-panel .conditions-summary::-webkit-details-marker {
+  display: none;
+}
+
+.annotate-view .conditions-panel .conditions-summary .small {
+  font-size: 0.78rem;
+  font-weight: 400;
 }
 
 .annotate-view .conditions-panel .meta {

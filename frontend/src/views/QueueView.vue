@@ -56,7 +56,7 @@ const {
     <p v-if="error" class="err">{{ error }}</p>
     <p v-if="loading" class="muted">Loading…</p>
 
-    <div v-else class="table-wrap panel">
+    <div v-else class="table-wrap panel desktop-only">
       <table>
         <thead>
           <tr>
@@ -91,6 +91,30 @@ const {
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div v-if="!loading" class="card-list mobile-only">
+      <p v-if="items.length === 0" class="panel muted">No items yet. Seed the demo or upload files.</p>
+      <article v-for="item in items" :key="item.id" class="panel queue-card">
+        <div class="card-top">
+          <span class="mono">{{ item.filename }}</span>
+          <span class="badge" :class="item.status">{{ item.status }}</span>
+        </div>
+        <dl class="card-meta">
+          <div><dt>Duration</dt><dd>{{ formatDuration(item.durationSeconds) }}</dd></div>
+          <div><dt>Annotator</dt><dd>{{ item.annotator || '—' }}</dd></div>
+          <div><dt>Spans</dt><dd>{{ item._count?.spans ?? 0 }}</dd></div>
+        </dl>
+        <RouterLink
+          v-if="item.status !== 'AUTO_REJECTED' && item.storagePath && item.originalTranscript"
+          class="card-action"
+          :to="`/items/${item.id}`"
+        >
+          Open
+        </RouterLink>
+        <span v-else-if="item.status === 'AUTO_REJECTED'" class="muted">Rejected</span>
+        <RouterLink v-else class="card-action" to="/ingest">Fix pairing</RouterLink>
+      </article>
     </div>
   </section>
 </template>

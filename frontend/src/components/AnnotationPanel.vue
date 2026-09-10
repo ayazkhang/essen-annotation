@@ -39,9 +39,11 @@ const {
   measurementUnits,
   selectionLabel,
   loadSpan,
+  cancelEdit,
   submit,
   removeSpan,
   spanText,
+  formatAttrs,
 } = useAnnotationPanel(props, emit);
 </script>
 
@@ -49,12 +51,13 @@ const {
   <div class="annotation-panel panel">
     <h2>Annotations</h2>
     <p class="muted small">
-      Select text in the corrected transcript, choose a type, fill attributes, save.
-      CRUD token fixes belong in the transcript editor.
+      Select text → type + attributes → save. Token CRUD is in the transcript editor.
     </p>
 
+    <div class="form-block">
     <div v-if="selectionLabel" class="sel mono">“{{ selectionLabel }}”</div>
     <p v-else class="muted small">No selection</p>
+    <p v-if="editingId" class="muted small editing-banner">Editing existing span</p>
 
     <label>
       Type
@@ -135,16 +138,24 @@ const {
       </label>
     </div>
 
-    <button type="button" class="primary" :disabled="!selectionLabel" @click="submit">
-      {{ editingId ? 'Update span' : 'Create span' }}
-    </button>
+    <div class="form-actions">
+      <button type="button" class="primary" :disabled="!selectionLabel" @click="submit">
+        {{ editingId ? 'Update span' : 'Create span' }}
+      </button>
+      <button v-if="editingId" type="button" @click="cancelEdit">Cancel</button>
+    </div>
+    </div>
 
+    <h3 class="list-title">Spans ({{ spans.length }})</h3>
+    <p v-if="spans.length === 0" class="muted small empty-spans">No spans yet.</p>
     <ul class="list">
-      <li v-for="span in spans" :key="span.id">
-        <div>
-          <strong>{{ span.type }}</strong>
-          <span class="mono"> {{ spanText(span) }}</span>
-          <div class="attrs muted">{{ JSON.stringify(span.attributes) }}</div>
+      <li v-for="span in spans" :key="span.id" :class="{ active: editingId === span.id }">
+        <div class="span-body">
+          <div class="span-head">
+            <strong>{{ span.type }}</strong>
+            <span class="mono span-text">{{ spanText(span) }}</span>
+          </div>
+          <div class="attrs muted">{{ formatAttrs(span.attributes) }}</div>
         </div>
         <div class="row-actions">
           <button type="button" @click="loadSpan(span)">Edit</button>

@@ -1,12 +1,13 @@
 :root {
-  --bg: #f3f0ea;
-  --bg-deep: #e7e1d6;
-  --surface: #fffcf7;
-  --ink: #1c2420;
-  --muted: #5c6a62;
-  --line: #c9c2b4;
+  --bg: #eef0f2;
+  --bg-deep: #e4e7eb;
+  --surface: #ffffff;
+  --surface-muted: #f7f8fa;
+  --ink: #1a1f24;
+  --muted: #5b6570;
+  --line: #dde1e6;
   --accent: #0f6b5c;
-  --accent-soft: #d5ebe6;
+  --accent-soft: #e6f4f1;
   --warn: #9a5b14;
   --danger: #8b2e2e;
   --reject: #6b7280;
@@ -36,10 +37,7 @@ body,
 body {
   font-family: var(--font);
   color: var(--ink);
-  background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, #d9ebe6 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, #efe6d4 0%, transparent 50%),
-    var(--bg);
+  background: var(--bg);
 }
 
 a {
@@ -100,7 +98,7 @@ button:disabled {
 .panel {
   min-width: 0;
   max-width: 100%;
-  background: var(--surface);
+  background: var(--surface-muted);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
