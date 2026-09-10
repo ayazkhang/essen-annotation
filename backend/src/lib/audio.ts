@@ -1,12 +1,13 @@
 import fs from 'node:fs/promises';
 import { parseFile } from 'music-metadata';
+import type { JsonObject, JsonValue } from '../types/json.js';
 
 export interface AudioAnalysis {
   durationSeconds: number;
   sampleRate: number | null;
   channels: number | null;
   bitDepth: number | null;
-  headerMetadata: Record<string, unknown>;
+  headerMetadata: JsonObject;
   distanceEstimateSuggested: number | null;
   speechRateWpmSuggested: number | null;
 }
@@ -115,11 +116,13 @@ export async function readWavPcmSamples(filePath: string, maxSeconds = 30): Prom
   return mono;
 }
 
-function collectNativeTags(native: Record<string, { id: string; value: unknown }[]> | undefined): Record<string, unknown> {
+function collectNativeTags(
+  native: Record<string, { id: string; value: JsonValue }[]> | undefined,
+): JsonObject {
   if (!native) return {};
-  const out: Record<string, unknown> = {};
+  const out: JsonObject = {};
   for (const [format, tags] of Object.entries(native)) {
-    out[format] = tags.map((t) => ({ id: t.id, value: t.value }));
+    out[format] = tags.map((t) => ({ id: t.id, value: t.value as JsonValue }));
   }
   return out;
 }
@@ -134,18 +137,18 @@ export async function analyzeAudioFile(
   const channels = metadata.format.numberOfChannels ?? null;
   const bitDepth = metadata.format.bitsPerSample ?? null;
 
-  const headerMetadata: Record<string, unknown> = {
-    container: metadata.format.container,
-    codec: metadata.format.codec,
-    bitrate: metadata.format.bitrate,
-    lossless: metadata.format.lossless,
+  const headerMetadata: JsonObject = {
+    container: metadata.format.container ?? null,
+    codec: metadata.format.codec ?? null,
+    bitrate: metadata.format.bitrate ?? null,
+    lossless: metadata.format.lossless ?? null,
     common: {
-      title: metadata.common.title,
-      artist: metadata.common.artist,
-      comment: metadata.common.comment,
-      description: metadata.common.description,
+      title: metadata.common.title ?? null,
+      artist: metadata.common.artist ?? null,
+      comment: (metadata.common.comment as JsonValue) ?? null,
+      description: (metadata.common.description as JsonValue) ?? null,
     },
-    native: collectNativeTags(metadata.native),
+    native: collectNativeTags(metadata.native as Record<string, { id: string; value: JsonValue }[]> | undefined),
   };
 
   let distanceEstimateSuggested: number | null = null;

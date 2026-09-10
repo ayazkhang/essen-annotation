@@ -4,6 +4,7 @@ import { env } from '../config/env.js';
 import { asyncHandler, HttpError } from '../middleware/errorHandler.js';
 import { audioUpload } from '../middleware/upload.js';
 import * as ingestService from '../services/ingestService.js';
+import type { TranscriptUploadBody, UnpairDrop } from '../types/api.js';
 
 export const ingestRouter = Router();
 
@@ -34,7 +35,7 @@ ingestRouter.post('/audio', (req, res, next) => {
 ingestRouter.post(
   '/transcripts',
   asyncHandler(async (req, res) => {
-    const result = await ingestService.ingestTranscriptPayload(req.body);
+    const result = await ingestService.ingestTranscriptPayload(req.body as TranscriptUploadBody);
     res.status(201).json(result);
   }),
 );
@@ -42,7 +43,12 @@ ingestRouter.post(
 ingestRouter.post(
   '/transcripts/single',
   asyncHandler(async (req, res) => {
-    const result = await ingestService.ingestSingleTranscript(req.body?.path, req.body?.label);
+    const pathValue = req.body?.path;
+    const label = req.body?.label;
+    if (typeof pathValue !== 'string' || typeof label !== 'string') {
+      throw new HttpError(400, 'Body must include string fields path and label');
+    }
+    const result = await ingestService.ingestSingleTranscript(pathValue, label);
     res.status(201).json(result);
   }),
 );
@@ -57,7 +63,12 @@ ingestRouter.get(
 ingestRouter.post(
   '/pairing/manual',
   asyncHandler(async (req, res) => {
-    const result = await ingestService.manualPair(req.body?.audioItemId, req.body?.transcriptItemId);
+    const audioItemId = req.body?.audioItemId;
+    const transcriptItemId = req.body?.transcriptItemId;
+    if (typeof audioItemId !== 'string' || typeof transcriptItemId !== 'string') {
+      throw new HttpError(400, 'audioItemId and transcriptItemId are required');
+    }
+    const result = await ingestService.manualPair(audioItemId, transcriptItemId);
     res.json(result);
   }),
 );
@@ -65,7 +76,12 @@ ingestRouter.post(
 ingestRouter.post(
   '/pairing/unpair',
   asyncHandler(async (req, res) => {
-    const result = await ingestService.unpairItem(req.body?.itemId, req.body?.drop);
+    const itemId = req.body?.itemId;
+    const drop = req.body?.drop;
+    if (typeof itemId !== 'string' || (drop !== 'audio' && drop !== 'transcript')) {
+      throw new HttpError(400, 'itemId and drop ("audio"|"transcript") required');
+    }
+    const result = await ingestService.unpairItem(itemId, drop as UnpairDrop);
     res.json(result);
   }),
 );

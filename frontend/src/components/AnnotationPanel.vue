@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AnnotationSpan } from '../api';
+import type { AnnotationSpan, SpanAttributeMap } from '../api';
 import { useAnnotationPanel } from './useAnnotationPanel';
 
 const props = defineProps<{
@@ -14,7 +14,7 @@ const emit = defineEmits<{
       type: import('../api').SpanType;
       startOffset: number;
       endOffset: number;
-      attributes: Record<string, unknown>;
+      attributes: SpanAttributeMap;
     },
   ];
   update: [
@@ -23,7 +23,7 @@ const emit = defineEmits<{
       type: import('../api').SpanType;
       startOffset: number;
       endOffset: number;
-      attributes: Record<string, unknown>;
+      attributes: SpanAttributeMap;
     },
   ];
   remove: [id: string];

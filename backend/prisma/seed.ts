@@ -21,7 +21,7 @@ const DEMO_ITEMS: Array<{
     type: 'NUMBER' | 'FORMATTING_COMMAND' | 'SPELLED_OUT' | 'NAMED_ENTITY' | 'MEDICAL_TERM' | 'MEASUREMENT';
     start: number;
     end: number;
-    attributes: Record<string, unknown>;
+    attributes: Record<string, string | number | boolean>;
   }>;
 }> = [
   {

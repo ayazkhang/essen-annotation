@@ -1,6 +1,7 @@
 import { SpanType } from '@prisma/client';
 import { z } from 'zod';
 import { MEASUREMENT_UNITS, normalizeMeasurement } from './units.js';
+import type { JsonObject, JsonValue } from '../types/json.js';
 
 const numberAttrs = z.object({
   rendering: z.enum(['digits', 'words']),
@@ -40,7 +41,10 @@ const measurementAttrs = z
     unit: z.enum(MEASUREMENT_UNITS as [string, ...string[]]),
   })
   .transform((raw) => {
-    const normalized = normalizeMeasurement(raw.value, raw.unit as Parameters<typeof normalizeMeasurement>[1]);
+    const normalized = normalizeMeasurement(
+      raw.value,
+      raw.unit as Parameters<typeof normalizeMeasurement>[1],
+    );
     return {
       value: raw.value,
       unit: raw.unit,
@@ -58,13 +62,36 @@ const schemas: Record<SpanType, z.ZodTypeAny> = {
   MEASUREMENT: measurementAttrs,
 };
 
-export function parseSpanAttributes(type: SpanType, attributes: unknown): Record<string, unknown> {
+export type NumberAttributes = z.infer<typeof numberAttrs>;
+export type FormattingCommandAttributes = z.infer<typeof formattingAttrs>;
+export type SpelledOutAttributes = z.infer<typeof spelledAttrs>;
+export type NamedEntityAttributes = z.infer<typeof namedEntityAttrs>;
+export type MedicalTermAttributes = z.infer<typeof medicalAttrs>;
+export type MeasurementAttributes = {
+  value: number;
+  unit: string;
+  normalizedValue: number;
+  baseUnit: string;
+};
+
+export type SpanAttributes =
+  | NumberAttributes
+  | FormattingCommandAttributes
+  | SpelledOutAttributes
+  | NamedEntityAttributes
+  | MedicalTermAttributes
+  | MeasurementAttributes;
+
+export function parseSpanAttributes(
+  type: SpanType,
+  attributes: SpanAttributes | JsonObject | JsonValue,
+): SpanAttributes {
   const schema = schemas[type];
   const result = schema.safeParse(attributes);
   if (!result.success) {
     throw new Error(`Invalid attributes for ${type}: ${result.error.message}`);
   }
-  return result.data as Record<string, unknown>;
+  return result.data as SpanAttributes;
 }
 
 export function assertSpanOffsets(

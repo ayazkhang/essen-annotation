@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { AUTO_REJECT_MAX_SECONDS } from './constants.js';
+import type { JsonValue } from '../types/json.js';
 
 export type RoutingStatus = 'AUTO_REJECTED' | 'PENDING';
 
@@ -49,7 +50,7 @@ export interface ParsedTranscriptUpload {
  * Parse and validate the AI transcript JSON array.
  * Keeps good rows; reports every problem without silently dropping context.
  */
-export function parseTranscriptJson(raw: unknown): ParsedTranscriptUpload {
+export function parseTranscriptJson(raw: JsonValue | JsonValue[]): ParsedTranscriptUpload {
   const issues: PairingIssue[] = [];
   const rows: TranscriptRow[] = [];
   const seen = new Set<string>();
@@ -72,7 +73,7 @@ export function parseTranscriptJson(raw: unknown): ParsedTranscriptUpload {
       return;
     }
 
-    const record = entry as Record<string, unknown>;
+    const record = entry;
     const pathValue = record.path;
     const labelValue = record.label;
 

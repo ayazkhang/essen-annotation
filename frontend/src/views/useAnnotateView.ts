@@ -3,6 +3,7 @@ import {
   api,
   type AnnotationItem,
   type AnnotationSpan,
+  type SpanAttributeMap,
   type SpanType,
 } from '../api';
 import type TranscriptEditor from '../components/TranscriptEditor.vue';
@@ -55,7 +56,7 @@ export function useAnnotateView(itemId: Ref<string>) {
     type: SpanType;
     startOffset: number;
     endOffset: number;
-    attributes: Record<string, unknown>;
+    attributes: SpanAttributeMap;
   }) {
     if (!item.value) return;
     try {
@@ -72,7 +73,7 @@ export function useAnnotateView(itemId: Ref<string>) {
     type: SpanType;
     startOffset: number;
     endOffset: number;
-    attributes: Record<string, unknown>;
+    attributes: SpanAttributeMap;
   }) {
     if (!item.value) return;
     try {

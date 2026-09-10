@@ -1,12 +1,36 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { ItemStatus, Prisma, type SpanType } from '@prisma/client';
+import { ItemStatus, Prisma, SpanType } from '@prisma/client';
 import { env } from '../config/env.js';
 import { prisma } from '../lib/prisma.js';
 import { estimateSpeechRateWpm } from '../lib/audio.js';
 import { toJsonl } from '../lib/export.js';
 import { assertSpanOffsets, parseSpanAttributes } from '../lib/spans.js';
 import { HttpError } from '../middleware/errorHandler.js';
+import type { SpanBody, UpdateItemBody, UpdateSpanBody } from '../types/api.js';
+import type { JsonObject } from '../types/json.js';
+
+function isSpanType(value: string): value is SpanType {
+  return (Object.values(SpanType) as string[]).includes(value);
+}
+
+function requireSpanBody(body: Partial<SpanBody>): SpanBody {
+  if (typeof body.type !== 'string' || !isSpanType(body.type)) {
+    throw new HttpError(400, 'type must be a valid SpanType');
+  }
+  if (typeof body.startOffset !== 'number' || typeof body.endOffset !== 'number') {
+    throw new HttpError(400, 'startOffset and endOffset must be numbers');
+  }
+  if (body.attributes === undefined || body.attributes === null || typeof body.attributes !== 'object') {
+    throw new HttpError(400, 'attributes must be an object');
+  }
+  return {
+    type: body.type,
+    startOffset: body.startOffset,
+    endOffset: body.endOffset,
+    attributes: body.attributes as JsonObject,
+  };
+}
 
 export async function listItems(query: {
   status?: string;
@@ -79,16 +103,7 @@ export async function resolveAudioPath(id: string): Promise<string> {
   return filePath;
 }
 
-export async function updateItem(
-  id: string,
-  body: {
-    correctedTranscript?: unknown;
-    status?: unknown;
-    annotator?: unknown;
-    speechRateWpmOverride?: unknown;
-    distanceEstimateOverride?: unknown;
-  },
-) {
+export async function updateItem(id: string, body: UpdateItemBody) {
   const item = await prisma.annotationItem.findUnique({ where: { id } });
   if (!item) {
     throw new HttpError(404, 'Not found');
@@ -138,29 +153,24 @@ export async function updateItem(
   return { item: updated };
 }
 
-export async function createSpan(
-  itemId: string,
-  body: { type?: unknown; startOffset?: unknown; endOffset?: unknown; attributes?: unknown },
-) {
+export async function createSpan(itemId: string, body: Partial<SpanBody>) {
   const item = await prisma.annotationItem.findUnique({ where: { id: itemId } });
   if (!item) {
     throw new HttpError(404, 'Not found');
   }
 
-  const type = body.type as SpanType;
-  const startOffset = body.startOffset as number;
-  const endOffset = body.endOffset as number;
+  const payload = requireSpanBody(body);
   const transcript = item.correctedTranscript ?? '';
 
   try {
-    assertSpanOffsets(startOffset, endOffset, transcript.length);
-    const attrs = parseSpanAttributes(type, body.attributes);
+    assertSpanOffsets(payload.startOffset, payload.endOffset, transcript.length);
+    const attrs = parseSpanAttributes(payload.type, payload.attributes);
     const span = await prisma.annotationSpan.create({
       data: {
         itemId: item.id,
-        type,
-        startOffset,
-        endOffset,
+        type: payload.type,
+        startOffset: payload.startOffset,
+        endOffset: payload.endOffset,
         attributes: attrs,
       },
     });
@@ -174,20 +184,12 @@ export async function createSpan(
 
     return { span };
   } catch (e) {
+    if (e instanceof HttpError) throw e;
     throw new HttpError(400, e instanceof Error ? e.message : 'Invalid span');
   }
 }
 
-export async function updateSpan(
-  itemId: string,
-  spanId: string,
-  body: {
-    type?: unknown;
-    startOffset?: unknown;
-    endOffset?: unknown;
-    attributes?: unknown;
-  },
-) {
+export async function updateSpan(itemId: string, spanId: string, body: UpdateSpanBody) {
   const item = await prisma.annotationItem.findUnique({ where: { id: itemId } });
   if (!item) {
     throw new HttpError(404, 'Not found');
@@ -201,15 +203,18 @@ export async function updateSpan(
   }
 
   try {
-    const startOffset = (body.startOffset as number | undefined) ?? existing.startOffset;
-    const endOffset = (body.endOffset as number | undefined) ?? existing.endOffset;
-    const type = (body.type as SpanType | undefined) ?? existing.type;
+    const startOffset = body.startOffset ?? existing.startOffset;
+    const endOffset = body.endOffset ?? existing.endOffset;
+    const type = body.type ?? existing.type;
+    if (body.type !== undefined && !isSpanType(body.type)) {
+      throw new HttpError(400, 'type must be a valid SpanType');
+    }
     const transcript = item.correctedTranscript ?? '';
     assertSpanOffsets(startOffset, endOffset, transcript.length);
     const attributes =
       body.attributes !== undefined
         ? parseSpanAttributes(type, body.attributes)
-        : (existing.attributes as object);
+        : (existing.attributes as JsonObject);
 
     const span = await prisma.annotationSpan.update({
       where: { id: existing.id },
@@ -217,6 +222,7 @@ export async function updateSpan(
     });
     return { span };
   } catch (e) {
+    if (e instanceof HttpError) throw e;
     throw new HttpError(400, e instanceof Error ? e.message : 'Invalid span update');
   }
 }

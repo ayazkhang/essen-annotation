@@ -13,13 +13,18 @@ export type SpanType =
   | 'MEDICAL_TERM'
   | 'MEASUREMENT';
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+export type JsonObject = { [key: string]: JsonValue };
+export type SpanAttributeMap = Record<string, string | number | boolean>;
+
 export interface AnnotationSpan {
   id: string;
   itemId: string;
   type: SpanType;
   startOffset: number;
   endOffset: number;
-  attributes: Record<string, unknown>;
+  attributes: SpanAttributeMap;
 }
 
 export interface AnnotationItem {
@@ -32,7 +37,7 @@ export interface AnnotationItem {
   sampleRate: number | null;
   channels: number | null;
   bitDepth: number | null;
-  headerMetadata: Record<string, unknown> | null;
+  headerMetadata: JsonObject | null;
   status: ItemStatus;
   annotator: string | null;
   originalTranscript: string | null;
@@ -77,7 +82,16 @@ export const api = {
     return request<{ item: AnnotationItem }>(`/api/items/${id}`);
   },
 
-  updateItem(id: string, body: Record<string, unknown>) {
+  updateItem(
+    id: string,
+    body: {
+      correctedTranscript?: string;
+      status?: ItemStatus;
+      annotator?: string;
+      speechRateWpmOverride?: number | null;
+      distanceEstimateOverride?: number | null;
+    },
+  ) {
     return request<{ item: AnnotationItem }>(`/api/items/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -85,7 +99,15 @@ export const api = {
     });
   },
 
-  createSpan(id: string, body: Record<string, unknown>) {
+  createSpan(
+    id: string,
+    body: {
+      type: SpanType;
+      startOffset: number;
+      endOffset: number;
+      attributes: SpanAttributeMap;
+    },
+  ) {
     return request<{ span: AnnotationSpan }>(`/api/items/${id}/spans`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -93,7 +115,16 @@ export const api = {
     });
   },
 
-  updateSpan(id: string, spanId: string, body: Record<string, unknown>) {
+  updateSpan(
+    id: string,
+    spanId: string,
+    body: {
+      type?: SpanType;
+      startOffset?: number;
+      endOffset?: number;
+      attributes?: SpanAttributeMap;
+    },
+  ) {
     return request<{ span: AnnotationSpan }>(`/api/items/${id}/spans/${spanId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -114,7 +145,7 @@ export const api = {
     );
   },
 
-  uploadTranscripts(payload: unknown) {
+  uploadTranscripts(payload: JsonValue) {
     return request<{
       items: AnnotationItem[];
       issues: Array<{ kind: string; message: string; path?: string }>;

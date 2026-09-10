@@ -1,5 +1,5 @@
 import { computed, reactive, ref, watch } from 'vue';
-import type { AnnotationSpan, SpanType } from '../api';
+import type { AnnotationSpan, SpanAttributeMap, SpanType } from '../api';
 
 export const SPAN_TYPES: SpanType[] = [
   'NUMBER',
@@ -56,7 +56,7 @@ export function useAnnotationPanel(
         type: SpanType;
         startOffset: number;
         endOffset: number;
-        attributes: Record<string, unknown>;
+        attributes: SpanAttributeMap;
       },
     ): void;
     (
@@ -66,7 +66,7 @@ export function useAnnotationPanel(
         type: SpanType;
         startOffset: number;
         endOffset: number;
-        attributes: Record<string, unknown>;
+        attributes: SpanAttributeMap;
       },
     ): void;
     (e: 'remove', id: string): void;
@@ -95,7 +95,7 @@ export function useAnnotationPanel(
     },
   );
 
-  function attributesForType(t: SpanType): Record<string, unknown> {
+  function attributesForType(t: SpanType): SpanAttributeMap {
     switch (t) {
       case 'NUMBER':
         return {
@@ -167,7 +167,7 @@ export function useAnnotationPanel(
     return props.transcript.slice(span.startOffset, span.endOffset);
   }
 
-  function formatAttrs(attrs: Record<string, unknown>): string {
+  function formatAttrs(attrs: SpanAttributeMap): string {
     return Object.entries(attrs)
       .filter(([, v]) => v !== '' && v !== null && v !== undefined)
       .map(([k, v]) => `${k}: ${String(v)}`)

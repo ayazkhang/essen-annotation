@@ -1,5 +1,5 @@
 import { onMounted, ref } from 'vue';
-import { api } from '../api';
+import { api, type JsonValue } from '../api';
 
 export function useIngestView() {
   const audioMsg = ref('');
@@ -54,7 +54,7 @@ export function useIngestView() {
     transcriptIssues.value = [];
     try {
       const text = await file.text();
-      const parsed = JSON.parse(text);
+      const parsed = JSON.parse(text) as JsonValue;
       const res = await api.uploadTranscripts(parsed);
       transcriptMsg.value = `Applied ${res.items.length} transcript row(s).`;
       transcriptIssues.value = res.issues.map((i) =>
@@ -73,7 +73,7 @@ export function useIngestView() {
     transcriptMsg.value = '';
     transcriptIssues.value = [];
     try {
-      const parsed = JSON.parse(transcriptJson.value);
+      const parsed = JSON.parse(transcriptJson.value) as JsonValue;
       const res = await api.uploadTranscripts(parsed);
       transcriptMsg.value = `Applied ${res.items.length} transcript row(s).`;
       transcriptIssues.value = res.issues.map((i) =>

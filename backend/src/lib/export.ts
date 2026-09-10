@@ -1,4 +1,5 @@
-import type { AnnotationItem, AnnotationSpan } from '@prisma/client';
+import type { AnnotationItem, AnnotationSpan, Prisma, SpanType } from '@prisma/client';
+import type { JsonValue } from '../types/json.js';
 
 export interface ExportLine {
   audio: {
@@ -10,17 +11,17 @@ export interface ExportLine {
   correctedTranscript: string | null;
   spans: Array<{
     id: string;
-    type: string;
+    type: SpanType;
     startOffset: number;
     endOffset: number;
     text: string;
-    attributes: unknown;
+    attributes: JsonValue;
   }>;
   recordingConditions: {
     sampleRate: number | null;
     channels: number | null;
     bitDepth: number | null;
-    headerMetadata: unknown;
+    headerMetadata: JsonValue | null;
     speechRateWpm: number | null;
     speechRateWpmSuggested: number | null;
     distanceEstimate: number | null;
@@ -30,6 +31,15 @@ export interface ExportLine {
   status: string;
   annotator: string | null;
   exportedAt: string;
+}
+
+function asJsonValue(value: Prisma.JsonValue | null): JsonValue | null {
+  if (value === null) return null;
+  return value as JsonValue;
+}
+
+function asJsonObjectOrValue(value: Prisma.JsonValue): JsonValue {
+  return value as JsonValue;
 }
 
 export function toExportLine(
@@ -50,13 +60,13 @@ export function toExportLine(
       startOffset: s.startOffset,
       endOffset: s.endOffset,
       text: corrected.slice(s.startOffset, s.endOffset),
-      attributes: s.attributes,
+      attributes: asJsonObjectOrValue(s.attributes),
     })),
     recordingConditions: {
       sampleRate: item.sampleRate,
       channels: item.channels,
       bitDepth: item.bitDepth,
-      headerMetadata: item.headerMetadata,
+      headerMetadata: asJsonValue(item.headerMetadata),
       speechRateWpm: item.speechRateWpmOverride ?? item.speechRateWpmSuggested,
       speechRateWpmSuggested: item.speechRateWpmSuggested,
       distanceEstimate: item.distanceEstimateOverride ?? item.distanceEstimateSuggested,

@@ -40,9 +40,7 @@ Set `SEED_ON_START=0` on the `backend` service in `docker-compose.yml` if you do
 
 ## Demo audio files
 
-Committed sample WAVs live under `demo/audio/` (`op_report_long.wav`, `lagerung_long.wav`, `short_reject.wav`). The backend seed copies them into uploads and loads transcripts/spans.
-
-If those files are missing, regenerate them:
+Committed sample WAVs live under `demo/audio/` (`op_report_long.wav`, `lagerung_long.wav`, `short_reject.wav`). The backend seed copies them into uploads and loads transcripts/spans. Regenerate them when missing:
 
 ```bash
 # Docker

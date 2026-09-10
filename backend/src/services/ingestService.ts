@@ -8,6 +8,9 @@ import { analyzeAudioFile, estimateSpeechRateWpm } from '../lib/audio.js';
 import { normalizeFilename, parseTranscriptJson } from '../lib/pairing.js';
 import { computeItemStatus } from '../lib/status.js';
 import { HttpError } from '../middleware/errorHandler.js';
+import type { TranscriptUploadBody, UnpairDrop } from '../types/api.js';
+import type { JsonValue } from '../types/json.js';
+import { isJsonObject } from '../types/json.js';
 
 export async function ingestAudioFiles(files: Express.Multer.File[]) {
   if (files.length === 0) {
@@ -50,7 +53,7 @@ export async function ingestAudioFiles(files: Express.Multer.File[]) {
           sampleRate: analysis.sampleRate,
           channels: analysis.channels,
           bitDepth: analysis.bitDepth,
-          headerMetadata: analysis.headerMetadata as object,
+          headerMetadata: analysis.headerMetadata,
           distanceEstimateSuggested: analysis.distanceEstimateSuggested,
           speechRateWpmSuggested: speechRate,
           status,
@@ -63,7 +66,7 @@ export async function ingestAudioFiles(files: Express.Multer.File[]) {
           sampleRate: analysis.sampleRate,
           channels: analysis.channels,
           bitDepth: analysis.bitDepth,
-          headerMetadata: analysis.headerMetadata as object,
+          headerMetadata: analysis.headerMetadata,
           distanceEstimateSuggested: analysis.distanceEstimateSuggested,
           speechRateWpmSuggested: speechRate,
           status,
@@ -82,12 +85,12 @@ export async function ingestAudioFiles(files: Express.Multer.File[]) {
   return { items: created, issues };
 }
 
-function resolveTranscriptPayload(body: unknown): unknown {
-  if (body && typeof body === 'object' && !Array.isArray(body)) {
-    const record = body as Record<string, unknown>;
+function resolveTranscriptPayload(body: TranscriptUploadBody): JsonValue {
+  if (isJsonObject(body as JsonValue)) {
+    const record = body as { json?: string; transcripts?: JsonValue };
     if (typeof record.json === 'string') {
       try {
-        return JSON.parse(record.json);
+        return JSON.parse(record.json) as JsonValue;
       } catch {
         throw new HttpError(400, 'Malformed JSON in "json" field');
       }
@@ -96,7 +99,7 @@ function resolveTranscriptPayload(body: unknown): unknown {
       return record.transcripts;
     }
   }
-  return body;
+  return body as JsonValue;
 }
 
 async function upsertTranscriptRow(filename: string, label: string) {
@@ -128,7 +131,7 @@ async function upsertTranscriptRow(filename: string, label: string) {
   });
 }
 
-export async function ingestTranscriptPayload(body: unknown) {
+export async function ingestTranscriptPayload(body: TranscriptUploadBody) {
   const payload = resolveTranscriptPayload(body);
   const { rows, issues } = parseTranscriptJson(payload);
   const applied = [];
@@ -138,8 +141,8 @@ export async function ingestTranscriptPayload(body: unknown) {
   return { items: applied, issues, matchedCount: applied.length };
 }
 
-export async function ingestSingleTranscript(audioPath: unknown, label: unknown) {
-  if (typeof audioPath !== 'string' || typeof label !== 'string') {
+export async function ingestSingleTranscript(audioPath: string, label: string) {
+  if (!audioPath.trim() || !label.trim()) {
     throw new HttpError(400, 'Body must include string fields path and label');
   }
   const item = await upsertTranscriptRow(normalizeFilename(audioPath), label);
@@ -161,11 +164,7 @@ export async function getPairingOverview() {
   };
 }
 
-export async function manualPair(audioItemId: unknown, transcriptItemId: unknown) {
-  if (typeof audioItemId !== 'string' || typeof transcriptItemId !== 'string') {
-    throw new HttpError(400, 'audioItemId and transcriptItemId are required');
-  }
-
+export async function manualPair(audioItemId: string, transcriptItemId: string) {
   const audio = await prisma.annotationItem.findUnique({ where: { id: audioItemId } });
   const transcript = await prisma.annotationItem.findUnique({ where: { id: transcriptItemId } });
 
@@ -205,11 +204,7 @@ export async function manualPair(audioItemId: unknown, transcriptItemId: unknown
   return { item: updated };
 }
 
-export async function unpairItem(itemId: unknown, drop: unknown) {
-  if (typeof itemId !== 'string' || (drop !== 'audio' && drop !== 'transcript')) {
-    throw new HttpError(400, 'itemId and drop ("audio"|"transcript") required');
-  }
-
+export async function unpairItem(itemId: string, drop: UnpairDrop) {
   const item = await prisma.annotationItem.findUnique({ where: { id: itemId } });
   if (!item) {
     throw new HttpError(404, 'Item not found');
